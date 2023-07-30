@@ -23,6 +23,7 @@ from typing import (
 from pydantic import Field
 
 from langchain.callbacks.base import BaseCallbackManager, Callbacks
+from langchain.callbacks.tracers.schemas import RunTypeEnum
 from langchain.load.dump import dumpd
 from langchain.load.serializable import Serializable
 
@@ -159,6 +160,7 @@ class Runnable(Generic[Input, Output], ABC):
         func: Callable[[Input], Output],
         input: Input,
         config: Optional[RunnableConfig],
+        run_type: Optional[RunTypeEnum] = None,
     ) -> Output:
         from langchain.callbacks.manager import CallbackManager
 
@@ -169,7 +171,9 @@ class Runnable(Generic[Input, Output], ABC):
             inheritable_metadata=config.get("metadata"),
         )
         run_manager = callback_manager.on_chain_start(
-            dumpd(self), input if isinstance(input, dict) else {"input": input}
+            dumpd(self),
+            input if isinstance(input, dict) else {"input": input},
+            run_type=run_type,
         )
         try:
             output = func(input)
